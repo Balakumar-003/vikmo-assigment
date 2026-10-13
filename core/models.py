@@ -120,3 +120,11 @@ class ChatMessage(models.Model):
 
     def __str__(self):
         return f"{self.session_id} [{self.role}]: {self.content[:30]}"
+
+
+class DailyOrderSequence(models.Model):
+    date_str = models.CharField(max_length=8, unique=True, db_index=True)  # YYYYMMDD
+    last_sequence = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.date_str}: {self.last_sequence}"
