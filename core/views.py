@@ -265,3 +265,18 @@ def reorder_suggestions(request):
     service = get_forecast_service()
     results = service.get_reorder_suggestions()
     return Response({"results": results}, status=status.HTTP_200_OK)
+
+
+# ---- Dealer Assistant (GenAI) ---------------------------------------------------------
+
+
+@api_view(["POST"])
+def assistant_chat(request):
+    from core.services.assistant import get_assistant_service
+    session_id = request.data.get("session_id")
+    dealer_id = request.data.get("dealer_id")
+    message = request.data.get("message")
+
+    service = get_assistant_service()
+    result = service.chat(session_id=session_id, dealer_id=dealer_id, message=message)
+    return Response(result, status=status.HTTP_200_OK)

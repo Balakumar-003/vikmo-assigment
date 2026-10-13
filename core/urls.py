@@ -27,4 +27,7 @@ urlpatterns = [
     # Forecasting & Reorder (ML)
     path("forecast/<str:sku>/", views.forecast_detail, name="forecast-detail"),
     path("reorder-suggestions/", views.reorder_suggestions, name="reorder-suggestions"),
+
+    # Dealer Assistant (GenAI)
+    path("assistant/chat/", views.assistant_chat, name="assistant-chat"),
 ]
