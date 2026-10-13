@@ -1,0 +1,22 @@
+{
+  "Baseline_LastValue": {
+    "MAE": 12.54,
+    "WAPE_pct": 36.09,
+    "sample_size": 616
+  },
+  "Baseline_4W_Avg": {
+    "MAE": 9.72,
+    "WAPE_pct": 27.96,
+    "sample_size": 616
+  },
+  "Baseline_SameWeekLastYear": {
+    "MAE": 11.94,
+    "WAPE_pct": 34.35,
+    "sample_size": 616
+  },
+  "Proposed_Poisson_GBM": {
+    "MAE": 9.1,
+    "WAPE_pct": 26.19,
+    "sample_size": 616
+  }
+}

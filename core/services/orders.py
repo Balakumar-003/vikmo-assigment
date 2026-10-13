@@ -5,7 +5,7 @@ from django.db import transaction, IntegrityError
 from django.utils import timezone
 
 from core.exceptions import APIError
-from core.models import Product, Dealer, Order, OrderItem, DailyOrderSequence
+from core.models import Product, Inventory, Dealer, Order, OrderItem, DailyOrderSequence
 from core.services.pricing import calculate_line_item, calculate_order_totals
 
 
@@ -235,6 +235,10 @@ def confirm_order(order_number: str) -> Order:
             product = locked_products[item.product_id]
             product.stock -= item.quantity
             product.save(update_fields=["stock", "updated_at"])
+            Inventory.objects.update_or_create(
+                product=product,
+                defaults={"quantity": product.stock, "reason": f"Deducted for order {order.order_number}"},
+            )
 
         order.status = Order.STATUS_CONFIRMED
         order.save(update_fields=["status", "updated_at"])
@@ -265,6 +269,10 @@ def cancel_order(order_number: str) -> Order:
                 if product:
                     product.stock += item.quantity
                     product.save(update_fields=["stock", "updated_at"])
+                    Inventory.objects.update_or_create(
+                        product=product,
+                        defaults={"quantity": product.stock, "reason": f"Restored from cancelled order {order.order_number}"},
+                    )
 
         order.status = Order.STATUS_CANCELLED
         order.save(update_fields=["status", "updated_at"])

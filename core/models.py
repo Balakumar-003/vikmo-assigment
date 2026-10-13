@@ -16,6 +16,7 @@ class Product(models.Model):
     )
     stock = models.IntegerField(default=0, validators=[MinValueValidator(0)])
     description = models.TextField(blank=True, default="")
+    embedding = models.JSONField(null=True, blank=True)  # Dense semantic vector for hybrid retrieval
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -29,6 +30,19 @@ class Product(models.Model):
 
     def __str__(self):
         return f"{self.sku} - {self.name}"
+
+
+class Inventory(models.Model):
+    product = models.OneToOneField(Product, on_delete=models.CASCADE, related_name="inventory_record")
+    quantity = models.IntegerField(default=0, validators=[MinValueValidator(0)])
+    reason = models.CharField(max_length=255, blank=True, default="")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = "Inventories"
+
+    def __str__(self):
+        return f"{self.product.sku}: {self.quantity} units"
 
 
 class Dealer(models.Model):

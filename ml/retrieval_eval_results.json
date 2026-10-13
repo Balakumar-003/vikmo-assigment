@@ -1,0 +1,221 @@
+{
+  "total_queries": 26,
+  "evaluable_queries": 23,
+  "hits_at_5": 21,
+  "recall_at_5": 91.3,
+  "mrr": 0.757,
+  "breakdown": {
+    "standard": {
+      "total": 5,
+      "hits": 5
+    },
+    "vehicle_variant": {
+      "total": 5,
+      "hits": 5
+    },
+    "misspelling": {
+      "total": 5,
+      "hits": 3
+    },
+    "hinglish": {
+      "total": 5,
+      "hits": 5
+    },
+    "generic": {
+      "total": 3,
+      "hits": 3
+    },
+    "unmatched": {
+      "total": 0,
+      "hits": 0
+    }
+  },
+  "queries": [
+    {
+      "query": "brake pads for Bajaj Pulsar 150",
+      "expected_skus": [
+        "BRK-1044",
+        "BRK-1063"
+      ],
+      "type": "standard"
+    },
+    {
+      "query": "KTM Duke 390 chain sprocket kit",
+      "expected_skus": [
+        "CHN-1040",
+        "CHN-1076"
+      ],
+      "type": "standard"
+    },
+    {
+      "query": "battery for Bajaj Dominar 400",
+      "expected_skus": [
+        "ELE-1002"
+      ],
+      "type": "standard"
+    },
+    {
+      "query": "LED indicator set TVS Apache RTR 160",
+      "expected_skus": [
+        "ELE-1001"
+      ],
+      "type": "standard"
+    },
+    {
+      "query": "Brake Shoe Set Suzuki Gixxer SF",
+      "expected_skus": [
+        "BRK-1001"
+      ],
+      "type": "standard"
+    },
+    {
+      "query": "Duke 390 brake pads",
+      "expected_skus": [
+        "BRK-1032"
+      ],
+      "type": "vehicle_variant"
+    },
+    {
+      "query": "Pulsar 150 chain kit",
+      "expected_skus": [
+        "CHN-1001",
+        "CHN-1002"
+      ],
+      "type": "vehicle_variant"
+    },
+    {
+      "query": "Dominar side mirror set",
+      "expected_skus": [
+        "BDY-1001",
+        "BDY-1086"
+      ],
+      "type": "vehicle_variant"
+    },
+    {
+      "query": "Apache 200 tank pad",
+      "expected_skus": [
+        "BDY-1002"
+      ],
+      "type": "vehicle_variant"
+    },
+    {
+      "query": "Gixxer foot peg set",
+      "expected_skus": [
+        "GRP-1001"
+      ],
+      "type": "vehicle_variant"
+    },
+    {
+      "query": "braek pad pulsar 150",
+      "expected_skus": [
+        "BRK-1044",
+        "BRK-1063"
+      ],
+      "type": "misspelling"
+    },
+    {
+      "query": "chen sproket ktm duke",
+      "expected_skus": [
+        "CHN-1040",
+        "CHN-1076"
+      ],
+      "type": "misspelling"
+    },
+    {
+      "query": "indicater led apache rtr",
+      "expected_skus": [
+        "ELE-1001",
+        "ELE-1075"
+      ],
+      "type": "misspelling"
+    },
+    {
+      "query": "domnar 400 batry",
+      "expected_skus": [
+        "ELE-1002"
+      ],
+      "type": "misspelling"
+    },
+    {
+      "query": "gixxr brake shue",
+      "expected_skus": [
+        "BRK-1001"
+      ],
+      "type": "misspelling"
+    },
+    {
+      "query": "pulsar 150 ke liye brake pad",
+      "expected_skus": [
+        "BRK-1044",
+        "BRK-1063"
+      ],
+      "type": "hinglish"
+    },
+    {
+      "query": "dominar 400 ka mirror set",
+      "expected_skus": [
+        "BDY-1001",
+        "BDY-1086"
+      ],
+      "type": "hinglish"
+    },
+    {
+      "query": "duke 390 ke liye chain kit chahiye",
+      "expected_skus": [
+        "CHN-1040",
+        "CHN-1076"
+      ],
+      "type": "hinglish"
+    },
+    {
+      "query": "apache rtr 160 ka indicator dikhao",
+      "expected_skus": [
+        "ELE-1001"
+      ],
+      "type": "hinglish"
+    },
+    {
+      "query": "bike cover universal chahiye",
+      "expected_skus": [
+        "ACC-1001"
+      ],
+      "type": "hinglish"
+    },
+    {
+      "query": "coolant 1L universal",
+      "expected_skus": [
+        "OIL-1001"
+      ],
+      "type": "generic"
+    },
+    {
+      "query": "universal bike body cover",
+      "expected_skus": [
+        "ACC-1001"
+      ],
+      "type": "generic"
+    },
+    {
+      "query": "Motul coolant 1L",
+      "expected_skus": [
+        "OIL-1001"
+      ],
+      "type": "generic"
+    },
+    {
+      "query": "Ferrari carbon ceramic brake rotor",
+      "expected_skus": [],
+      "type": "unmatched"
+    },
+    {
+      "query": "Harley Davidson road glide windshield",
+      "expected_skus": [],
+      "type": "unmatched"
+    },
+    {
+      "query": "Apple iPhone 15 fast charger",
+      "expected_skus": [],
+      "type": "unmatched"
+    }
+  ]
+}

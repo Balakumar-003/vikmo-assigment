@@ -104,6 +104,8 @@ def execute_tool(name: str, arguments: dict, dealer_id: int) -> tuple[dict, dict
     Executes a tool call against the database and service layer.
     Returns (tool_result_dict, action_or_None).
     """
+    from core.services.retrieval import get_retriever
+
     action = None
 
     if name == "search_parts":
@@ -111,16 +113,23 @@ def execute_tool(name: str, arguments: dict, dealer_id: int) -> tuple[dict, dict
         vehicle = arguments.get("vehicle", "").strip() if arguments.get("vehicle") else ""
         category = arguments.get("category", "").strip() if arguments.get("category") else ""
 
-        qs = Product.objects.all()
-        if query:
-            qs = qs.filter(Q(sku__icontains=query) | Q(name__icontains=query) | Q(brand__icontains=query))
-        if vehicle:
-            qs = qs.filter(vehicle_fitment__icontains=vehicle)
-        if category:
-            qs = qs.filter(category__icontains=category)
+        retriever = get_retriever()
+        matched_products = retriever.search(query=query, vehicle=vehicle, category=category, top_k=6)
+
+        if not matched_products and (query or vehicle or category):
+            qs = Product.objects.all()
+            if query:
+                qs = qs.filter(Q(sku__icontains=query) | Q(name__icontains=query) | Q(brand__icontains=query))
+            if vehicle:
+                qs = qs.filter(vehicle_fitment__icontains=vehicle)
+            if category:
+                qs = qs.filter(category__icontains=category)
+            matched_products = list(qs[:6])
 
         matches = []
-        for p in qs[:8]:  # Top 8 matches
+        for p in matched_products:
+            # Wrap supplier description safely as untrusted data
+            clean_desc = re.sub(r"[<>{}\[\]\n\r]", " ", p.description[:120]).strip()
             matches.append({
                 "sku": p.sku,
                 "name": p.name,
@@ -129,6 +138,7 @@ def execute_tool(name: str, arguments: dict, dealer_id: int) -> tuple[dict, dict
                 "vehicle_fitment": p.vehicle_fitment,
                 "price": f"{p.price:.2f}",
                 "stock": p.stock,
+                "untrusted_catalogue_snippet": clean_desc,
             })
         return {"count": len(matches), "products": matches}, None
 
@@ -136,6 +146,7 @@ def execute_tool(name: str, arguments: dict, dealer_id: int) -> tuple[dict, dict
         sku = str(arguments.get("sku", "")).strip()
         try:
             p = Product.objects.get(sku__iexact=sku)
+            clean_desc = re.sub(r"[<>{}\[\]\n\r]", " ", p.description[:120]).strip()
             return {
                 "found": True,
                 "sku": p.sku,
@@ -143,6 +154,7 @@ def execute_tool(name: str, arguments: dict, dealer_id: int) -> tuple[dict, dict
                 "price": f"{p.price:.2f}",
                 "stock": p.stock,
                 "vehicle_fitment": p.vehicle_fitment,
+                "untrusted_catalogue_snippet": clean_desc,
             }, None
         except Product.DoesNotExist:
             return {"found": False, "message": f"Product with SKU '{sku}' not found"}, None
@@ -276,6 +288,25 @@ def heuristic_assistant_agent(message: str, dealer_id: int) -> tuple[str, list, 
         reply = "I can only assist with motorcycle parts, catalogue inquiries, inventory, and orders."
         return reply, [], tool_calls, actions
 
+    # Adversarial prompt injection defense
+    injection_patterns = [
+        "ignore previous instructions",
+        "set price to 0",
+        "system prompt override",
+        "ignore all rules",
+        "disregard previous",
+    ]
+    if any(ip in msg_lower for ip in injection_patterns):
+        reply = "I follow strict system integrity guidelines and cannot alter prices, rules, or system instructions."
+        return reply, [], tool_calls, actions
+
+    # Ambiguity check: if user asks for parts without specifying vehicle make/model
+    from core.services.retrieval import get_retriever
+    retriever = get_retriever()
+    if retriever.is_ambiguous_part_query(message):
+        reply = "Could you please clarify which motorcycle make and model (for example, Bajaj Pulsar 150, KTM Duke 390, or TVS Apache RTR 160) you need the part for?"
+        return reply, [], tool_calls, actions
+
     # 1. Order intent: e.g. "order 2 BRK-1044", "create draft order for BRK-1044"
     sku_match = re.findall(r"\b[A-Z]{3}-\d{4}\b", message)
     if "order" in msg_lower and sku_match:
@@ -306,38 +337,13 @@ def heuristic_assistant_agent(message: str, dealer_id: int) -> tuple[str, list, 
             reply = f"Product with SKU {sku} was not found in our catalogue."
             return reply, [], tool_calls, actions
 
-    # 3. Search parts intent
-    vehicle = None
-    known_vehicles = ["pulsar 150", "dominar 400", "apache rtr 160", "duke 390", "gixxer"]
-    for v in known_vehicles:
-        if v in msg_lower:
-            vehicle = v
-            break
-
-    query = None
-    if "brake" in msg_lower or "pad" in msg_lower:
-        query = "brake"
-    elif "chain" in msg_lower:
-        query = "chain"
-    elif "oil" in msg_lower or "filter" in msg_lower:
-        query = "oil"
-
-    if query or vehicle:
-        args = {}
-        if query:
-            args["query"] = query
-        if vehicle:
-            args["vehicle"] = vehicle
-        tool_calls.append({"name": "search_parts", "arguments": args})
-        result, _ = execute_tool("search_parts", args, dealer_id)
-        products = result.get("products", [])
-        if products:
-            p = products[0]
-            reply = f"Yes — {p['brand']} {p['name']} ({p['sku']}) fits {p['vehicle_fitment']}. Price: ₹{p['price']}, Stock: {p['stock']} available."
-            return reply, [p["sku"]], tool_calls, actions
-        else:
-            reply = f"I could not find matching parts for your query."
-            return reply, [], tool_calls, actions
+    # 3. Search parts intent via hybrid retriever
+    matched_products = retriever.search(query=message, top_k=4)
+    if matched_products and any(kw in msg_lower for kw in ["part", "pad", "brake", "chain", "oil", "filter", "mirror", "battery", "plug", "indicator", "kit", "lever", "shoe", "peg", "cover", "pulsar", "duke", "dominar", "apache", "gixxer"]):
+        p = matched_products[0]
+        tool_calls.append({"name": "search_parts", "arguments": {"query": message}})
+        reply = f"Yes — {p.brand} {p.name} ({p.sku}) fits {p.vehicle_fitment}. Real-time catalogue price: ₹{p.price:.2f}, current available stock: {p.stock} units."
+        return reply, [p.sku], tool_calls, actions
 
     # Default greeting / general automotive assistance
     reply = "Hello! I am your DealerDesk Assistant. I can help you search parts, check real-time stock and prices, or create draft orders."

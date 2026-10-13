@@ -4,7 +4,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from core.models import Product, Dealer
+from core.models import Product, Dealer, Inventory
 
 
 class Command(BaseCommand):
@@ -40,9 +40,13 @@ class Command(BaseCommand):
                         "stock": int(row["stock"].strip()),
                         "description": row.get("description", "").strip(),
                     }
-                    _, created = Product.objects.update_or_create(
+                    product, created = Product.objects.update_or_create(
                         sku=sku,
                         defaults=defaults,
+                    )
+                    Inventory.objects.update_or_create(
+                        product=product,
+                        defaults={"quantity": product.stock, "reason": "Initial catalogue seed"},
                     )
                     if created:
                         products_created += 1
