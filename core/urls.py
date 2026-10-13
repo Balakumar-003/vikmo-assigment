@@ -23,4 +23,8 @@ urlpatterns = [
     path("orders/<str:order_number>/dispatch/", views.order_dispatch, name="order-dispatch"),
     path("orders/<str:order_number>/deliver/", views.order_deliver, name="order-deliver"),
     path("orders/<str:order_number>/cancel/", views.order_cancel, name="order-cancel"),
+
+    # Forecasting & Reorder (ML)
+    path("forecast/<str:sku>/", views.forecast_detail, name="forecast-detail"),
+    path("reorder-suggestions/", views.reorder_suggestions, name="reorder-suggestions"),
 ]

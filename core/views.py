@@ -246,3 +246,22 @@ def order_dispatch(request, order_number):
 def order_deliver(request, order_number):
     order = deliver_order(order_number=order_number)
     return Response(OrderSerializer(order).data)
+
+
+# ---- Forecasting & Reorder ------------------------------------------------------------
+
+
+@api_view(["GET"])
+def forecast_detail(request, sku):
+    from core.services.forecasting import get_forecast_service
+    service = get_forecast_service()
+    data = service.get_forecast(sku)
+    return Response(data, status=status.HTTP_200_OK)
+
+
+@api_view(["GET"])
+def reorder_suggestions(request):
+    from core.services.forecasting import get_forecast_service
+    service = get_forecast_service()
+    results = service.get_reorder_suggestions()
+    return Response({"results": results}, status=status.HTTP_200_OK)
